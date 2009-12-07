@@ -24,7 +24,7 @@ is_deeply(
 
 my $cell_5 = Cell->new({ value => \'cell_5' });
 
-$cell_2->replace_with($cell_5);
+$cell_1->next_where(sub { ${$_->value} =~ /2/ })->replace_with($cell_5);
 
 is_deeply(
   [ values_for($cell_1) ],

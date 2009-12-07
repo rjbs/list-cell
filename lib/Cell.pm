@@ -11,15 +11,16 @@ use namespace::autoclean;
 has prev => (
   is  => 'ro',
   isa => Cell,
-  clearer => '__clear_prev',
-  writer  => '__set_prev',
+  clearer  => '__clear_prev',
+  writer   => '__set_prev',
+  weak_ref => 1,
 );
 
 has next => (
   is  => 'ro',
   isa => Cell,
-  clearer => '__clear_next',
-  writer  => '__set_next',
+  clearer  => '__clear_next',
+  writer   => '__set_next',
 );
 
 has value => (
@@ -62,6 +63,13 @@ sub replace_with {
   $cells[-1]->_set_next($self->next);
 
   return;
+}
+
+sub next_where {
+  my ($self, $sub) = @_;
+  my $next = $self->next;
+  return $next if do { local $_ = $next; $next->$sub; };
+  return $next->next_where($sub);
 }
 
 sub is_first { ! (shift)->prev }
