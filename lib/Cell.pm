@@ -74,6 +74,8 @@ sub insert_after {
   confess "given head is not the head of a chain" unless $head->is_first;
 
   my $next = $self->next;
+
+  warn Data::Dumper::Dumper($next);
   $self->replace_next($head);
   $head->last->replace_next($next) if $next;
 
