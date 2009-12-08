@@ -28,12 +28,14 @@ use Cell;
 
   my $cell_5 = Cell->new({ value => 5 });
 
+  # This line demonstrates the most common usage of this library that I have in
+  # mind.  -- rjbs, 2009-12-08
   $cell_1->next_where(sub { $_->value =~ /2/ })->replace_with($cell_5);
 
   values_are($cell_1, [ qw(1 5 4 3) ]);
 
   is($cell_2->prev, undef, "replacing cell_2 eliminated its prev");
-  is($cell_2->next, undef, "replacing cell_2 eliminated its next");
+  is($cell_2->next, undef, "...and its next");
 
   ok($cell_2->is_first, "...which means that it's now a head");
 
