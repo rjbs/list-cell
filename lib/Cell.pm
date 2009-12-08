@@ -75,7 +75,6 @@ sub insert_after {
 
   my $next = $self->next;
 
-  warn Data::Dumper::Dumper($next);
   $self->replace_next($head);
   $head->last->replace_next($next) if $next;
 
@@ -99,6 +98,7 @@ sub replace_next {
   confess "given head is not the head of a chain" unless $head->is_first;
 
   $head->__set_prev($self);
+  $self->next->__clear_prev if $self->next;
   $self->__set_next($head);
 
   return;
