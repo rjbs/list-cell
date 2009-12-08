@@ -5,41 +5,45 @@ use Test::More 0.88;
 
 use Cell;
 
-my $cell_1 = Cell->new({ value => 1 });
-my $cell_2 = Cell->new({ value => 2 });
-my $cell_3 = Cell->new({ value => 3 });
+# sub Cell::DESTROY { warn $_[0]->value . " is gone\n" }
 
-$cell_1->insert_after($cell_2);
+{
+  my $cell_1 = Cell->new({ value => 1 });
+  my $cell_2 = Cell->new({ value => 2 });
+  my $cell_3 = Cell->new({ value => 3 });
 
-values_are($cell_1, [ qw(1 2) ]);
+  $cell_1->insert_after($cell_2);
 
-$cell_1->next->insert_after($cell_3);
+  values_are($cell_1, [ qw(1 2) ]);
 
-values_are($cell_1, [ qw(1 2 3) ]);
+  $cell_1->next->insert_after($cell_3);
 
-my $cell_4 = Cell->new({ value => 4 });
+  values_are($cell_1, [ qw(1 2 3) ]);
 
-$cell_1->next->insert_after($cell_4);
+  my $cell_4 = Cell->new({ value => 4 });
 
-values_are($cell_1, [ qw(1 2 4 3) ]);
+  $cell_1->next->insert_after($cell_4);
 
-my $cell_5 = Cell->new({ value => 5 });
+  values_are($cell_1, [ qw(1 2 4 3) ]);
 
-$cell_1->next_where(sub { $_->value =~ /2/ })->replace_with($cell_5);
+  my $cell_5 = Cell->new({ value => 5 });
 
-values_are($cell_1, [ qw(1 5 4 3) ]);
+  $cell_1->next_where(sub { $_->value =~ /2/ })->replace_with($cell_5);
 
-is($cell_2->prev, undef, "replacing cell_2 eliminated its prev");
-is($cell_2->next, undef, "replacing cell_2 eliminated its next");
+  values_are($cell_1, [ qw(1 5 4 3) ]);
 
-ok($cell_2->is_first, "...which means that it's now a head");
+  is($cell_2->prev, undef, "replacing cell_2 eliminated its prev");
+  is($cell_2->next, undef, "replacing cell_2 eliminated its next");
 
-$cell_5->insert_before($cell_2);
+  ok($cell_2->is_first, "...which means that it's now a head");
 
-values_are($cell_1, [ qw(1 2 5 4 3) ]);
+  $cell_5->insert_before($cell_2);
 
-is($cell_5->first->value, 1, 'c->first->value');
-is($cell_5->last->value,  3, 'c->last->value');
+  values_are($cell_1, [ qw(1 2 5 4 3) ]);
+
+  is($cell_5->first->value, 1, 'c->first->value');
+  is($cell_5->last->value,  3, 'c->last->value');
+}
 
 {
   my $cell_A = Cell->new_from_values([ qw(1 2 3) ]);
