@@ -149,10 +149,8 @@ sub extract {
   my $prev = $self->prev;
   my $next = $self->next;
 
-  $self->__clear_prev;
-  $self->__clear_next;
-  $prev->__clear_next if $prev;
-  $next->__clear_prev if $next;
+  $self->clear_prev;
+  $self->clear_next;
 
   if ($prev and $next) {
     $prev->replace_next($next);
