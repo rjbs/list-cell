@@ -1,7 +1,7 @@
 package Cell;
 use Moose;
 
-use MooseX::Types::Moose qw(Ref);
+use MooseX::Types::Moose qw(Item);
 use MooseX::Types -declare => [ qw(Cell) ];
 
 use Scalar::Util qw(refaddr);
@@ -27,7 +27,7 @@ has next => (
 
 has value => (
   is  => 'rw',
-  isa => Ref,
+  isa => Item,
   required => 1,
 );
 
@@ -56,21 +56,24 @@ sub __linearize {
 
 sub insert_before {
   my ($self, $head) = @_;
-  return unless $head;
 
+  return unless $head;
   confess "given head is not the head of a chain" unless $head->is_first;
 
   my $prev = $self->prev;
+  $self->clear_prev;
+
+  $head->replace_prev($prev) if $prev;
+
   $head->last->replace_next($self);
-  $prev->replace_next($head) if $prev;
 
   return;
 }
 
 sub insert_after {
   my ($self, $head) = @_;
-  return unless $head;
 
+  return unless $head;
   confess "given head is not the head of a chain" unless $head->is_first;
 
   my $next = $self->next;
@@ -104,6 +107,15 @@ sub replace_next {
   return;
 }
 
+sub clear_prev {
+  my ($self) = @_;
+
+  return unless $self->prev;
+  $self->prev->clear_next;
+
+  return;
+}
+
 sub clear_next {
   my ($self) = @_;
 
@@ -123,6 +135,8 @@ sub replace_with {
   my $prev = $self->prev;
   my $next = $self->next;
 
+  $self->extract;
+
   $prev->replace_next($head) if $prev;
   $head->last->replace_next($next) if $next;
 
@@ -135,14 +149,13 @@ sub extract {
   my $prev = $self->prev;
   my $next = $self->next;
 
-  if ($prev) {
-    if ($next) {
-      $prev->replace_next($next);
-    } else {
-      $prev->__clear_next;
-    }
-  } elsif ($next) {
-    $next->__clear_prev;
+  $self->__clear_prev;
+  $self->__clear_next;
+  $prev->__clear_next if $prev;
+  $next->__clear_prev if $next;
+
+  if ($prev and $next) {
+    $prev->replace_next($next);
   }
 
   return $self;
