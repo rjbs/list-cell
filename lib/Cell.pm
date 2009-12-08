@@ -40,33 +40,10 @@ sub new_from_values {
   # }
 
   my @cells = map {; $self->new({ value => $_ }) } @$values;
-  my $head  = shift @cells;
 
-  $head->replace_next(@cells);
+  $self->__linearize(@cells);
 
-  return $head;
-}
-
-sub insert_before {
-  my ($self, @cells) = @_;
-  return unless @cells;
-
-  my $prev = $self->prev;
-  $cells[-1]->replace_next($self);
-  $prev->replace_next($cells[0]) if $prev;
-
-  return;
-}
-
-sub insert_after {
-  my ($self, @cells) = @_;
-  return unless @cells;
-
-  my $next = $self->next;
-  $self->replace_next(@cells);
-  $cells[-1]->replace_next($next) if $next;
-
-  return;
+  return $cells[0];
 }
 
 sub __linearize {
@@ -77,32 +54,57 @@ sub __linearize {
   }
 }
 
+sub insert_before {
+  my ($self, $head) = @_;
+  return unless $head;
+
+  confess "given head is not the head of a chain" unless $head->is_first;
+
+  my $prev = $self->prev;
+  $head->last->replace_next($self);
+  $prev->replace_next($head) if $prev;
+
+  return;
+}
+
+sub insert_after {
+  my ($self, $head) = @_;
+  return unless $head;
+
+  confess "given head is not the head of a chain" unless $head->is_first;
+
+  my $next = $self->next;
+  $self->replace_next($head);
+  $head->last->replace_next($next) if $next;
+
+  return;
+}
+
 sub replace_prev {
-  my ($self, @cells) = @_;
+  my ($self, $head) = @_;
 
-  die "no replacement cell given" unless @cells;
+  confess "no replacement cell given" unless $head;
+  confess "given head is not the head of a chain" unless $head->is_first;
 
-  $self->__linearize(@cells) if @cells > 1;
-
-  $cells[-1]->replace_next($self);
+  $head->last->replace_next($self);
   return;
 }
 
 sub replace_next {
-  my ($self, @cells) = @_;
+  my ($self, $head) = @_;
   
-  die "no replacement cell given" unless @cells;
+  confess "no replacement cell given" unless $head;
+  confess "given head is not the head of a chain" unless $head->is_first;
 
-  $self->__linearize(@cells) if @cells > 1;
-
-  $cells[0]->__set_prev($self);
-  $self->__set_next($cells[0]);
+  $head->__set_prev($self);
+  $self->__set_next($head);
 
   return;
 }
 
 sub clear_next {
   my ($self) = @_;
+
   return unless $self->next;
   $self->next->__clear_prev;
   $self->__clear_next;
@@ -111,12 +113,37 @@ sub clear_next {
 }
 
 sub replace_with {
-  my ($self, @cells) = @_;
+  my ($self, $head) = @_;
 
-  $self->prev->replace_next($cells[0]);
-  $cells[-1]->replace_next($self->next);
+  confess "no replacement cell given" unless $head;
+  confess "given head is not the head of a chain" unless $head->is_first;
+
+  my $prev = $self->prev;
+  my $next = $self->next;
+
+  $prev->replace_next($head) if $prev;
+  $head->last->replace_next($next) if $next;
 
   return;
+}
+
+sub extract {
+  my ($self) = @_;
+
+  my $prev = $self->prev;
+  my $next = $self->next;
+
+  if ($prev) {
+    if ($next) {
+      $prev->replace_next($next);
+    } else {
+      $prev->__clear_next;
+    }
+  } elsif ($next) {
+    $next->__clear_prev;
+  }
+
+  return $self;
 }
 
 ## TRAVERSAL METHODS.  EASY PEASY
