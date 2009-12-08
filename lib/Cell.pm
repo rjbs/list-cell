@@ -47,6 +47,17 @@ sub new_from_values {
   return $head;
 }
 
+sub insert_before {
+  my ($self, @cells) = @_;
+  return unless @cells;
+
+  my $prev = $self->prev;
+  $cells[-1]->replace_next($self);
+  $prev->replace_next($cells[0]) if $prev;
+
+  return;
+}
+
 sub insert_after {
   my ($self, @cells) = @_;
   return unless @cells;
@@ -58,13 +69,45 @@ sub insert_after {
   return;
 }
 
+sub __linearize {
+  my ($self, @cells) = @_;
+
+  for my $i (0 .. $#cells) {
+    $cells[ $i ]->replace_next($cells[ $i + 1 ]) if $i < $#cells;
+  }
+}
+
+sub replace_prev {
+  my ($self, @cells) = @_;
+
+  die "no replacement cell given" unless @cells;
+
+  $self->__linearize(@cells) if @cells > 1;
+
+  $cells[-1]->replace_next($self);
+  return;
+}
+
 sub replace_next {
   my ($self, @cells) = @_;
   
-  die "unimplemented" unless @cells == 1;
+  die "no replacement cell given" unless @cells;
+
+  $self->__linearize(@cells) if @cells > 1;
 
   $cells[0]->__set_prev($self);
   $self->__set_next($cells[0]);
+
+  return;
+}
+
+sub clear_next {
+  my ($self) = @_;
+  return unless $self->next;
+  $self->next->__clear_prev;
+  $self->__clear_next;
+
+  return;
 }
 
 sub replace_with {
@@ -75,6 +118,8 @@ sub replace_with {
 
   return;
 }
+
+## TRAVERSAL METHODS.  EASY PEASY
 
 sub next_where {
   my ($self, $sub) = @_;
@@ -92,5 +137,8 @@ sub prev_where {
 
 sub is_first { ! (shift)->prev }
 sub is_last  { ! (shift)->next }
+
+sub first { return $_[0]->prev ?  $_[0]->prev->first : $_[0]; }
+sub last  { return $_[0]->next ?  $_[0]->next->last  : $_[0]; }
 
 1;

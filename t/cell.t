@@ -5,8 +5,6 @@ use Test::More 0.88;
 
 use Cell;
 
-# my $cell_0 = Cell->new_from_values([ \qw(cell_1 cell_2 cell_3) ]);
-
 my $cell_1 = Cell->new({ value => \'cell_1' });
 my $cell_2 = Cell->new({ value => \'cell_2' });
 my $cell_3 = Cell->new({ value => \'cell_3' });
@@ -32,6 +30,33 @@ is_deeply(
   [ values_for($cell_1) ],
   [ qw(cell_1 cell_5 cell_4 cell_3) ],
 );
+
+$cell_5->insert_before($cell_2);
+
+is_deeply(
+  [ values_for($cell_1) ],
+  [ qw(cell_1 cell_2 cell_5 cell_4 cell_3) ],
+);
+
+is_deeply($cell_5->first->value, \'cell_1', 'c->first->value');
+is_deeply($cell_5->last->value,  \'cell_3', 'c->last->value');
+
+{
+  my $cell_A = Cell->new_from_values([ \qw(cell_1 cell_2 cell_3) ]);
+  my $cell_B = Cell->new_from_values([ \qw(cell_X cell_Y cell_Z) ]);
+
+  is_deeply(
+    [ values_for($cell_A) ],
+    [ qw(cell_1 cell_2 cell_3) ],
+  );
+
+  $cell_B->replace_prev($cell_A);
+
+  is_deeply(
+    [ values_for($cell_A) ],
+    [ qw(cell_1 cell_X cell_Y cell_Z) ],
+  );
+}
 
 done_testing;
 
