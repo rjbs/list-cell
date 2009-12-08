@@ -5,17 +5,19 @@ use Test::More 0.88;
 
 use Cell;
 
+# my $cell_0 = Cell->new_from_values([ \qw(cell_1 cell_2 cell_3) ]);
+
 my $cell_1 = Cell->new({ value => \'cell_1' });
 my $cell_2 = Cell->new({ value => \'cell_2' });
 my $cell_3 = Cell->new({ value => \'cell_3' });
 
-$cell_1->splice_next($cell_2);
+$cell_1->insert_after($cell_2);
 
-$cell_1->next->splice_next($cell_3);
+$cell_1->next->insert_after($cell_3);
 
 my $cell_4 = Cell->new({ value => \'cell_4' });
 
-$cell_1->next->splice_next($cell_4);
+$cell_1->next->insert_after($cell_4);
 
 is_deeply(
   [ values_for($cell_1) ],

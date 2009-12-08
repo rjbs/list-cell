@@ -4,6 +4,8 @@ use Moose;
 use MooseX::Types::Moose qw(Ref);
 use MooseX::Types -declare => [ qw(Cell) ];
 
+use Scalar::Util qw(refaddr);
+
 class_type Cell, { class => 'Cell' };
 
 use namespace::autoclean;
@@ -29,27 +31,38 @@ has value => (
   required => 1,
 );
 
-sub splice_next {
+sub new_from_values {
+  my ($self, $values) = @_;
+
+  # my %seen;
+  # for my $value (@$values) {
+  #   confess "duplicate value in values list" if $seen{ refaddr($value) }++;
+  # }
+
+  my @cells = map {; $self->new({ value => $_ }) } @$values;
+  my $head  = shift @cells;
+
+  $head->replace_next(@cells);
+
+  return $head;
+}
+
+sub insert_after {
   my ($self, @cells) = @_;
   return unless @cells;
 
   my $next = $self->next;
-  $self->_set_next(@cells);
-  $cells[-1]->_set_next($next) if $next;
+  $self->replace_next(@cells);
+  $cells[-1]->replace_next($next) if $next;
 
   return;
 }
 
-sub _clear_prev {
-  shift->__clear_prev;
-}
-
-sub _set_next {
+sub replace_next {
   my ($self, @cells) = @_;
   
   die "unimplemented" unless @cells == 1;
 
-  $cells[0]->_clear_prev;
   $cells[0]->__set_prev($self);
   $self->__set_next($cells[0]);
 }
@@ -57,10 +70,8 @@ sub _set_next {
 sub replace_with {
   my ($self, @cells) = @_;
 
-  die "unimplemented" unless @cells == 1;
-
-  $self->prev->_set_next($cells[0]);
-  $cells[-1]->_set_next($self->next);
+  $self->prev->replace_next($cells[0]);
+  $cells[-1]->replace_next($self->next);
 
   return;
 }
@@ -70,6 +81,13 @@ sub next_where {
   my $next = $self->next;
   return $next if do { local $_ = $next; $next->$sub; };
   return $next->next_where($sub);
+}
+
+sub prev_where {
+  my ($self, $sub) = @_;
+  my $prev = $self->prev;
+  return $prev if do { local $_ = $prev; $prev->$sub; };
+  return $prev->prev_where($sub);
 }
 
 sub is_first { ! (shift)->prev }
