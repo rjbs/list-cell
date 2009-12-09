@@ -132,15 +132,13 @@ sub replace_with {
   confess "no replacement cell given" unless $head;
   confess "given head is not the head of a chain" unless $head->is_first;
 
-  my $prev = $self->prev;
-  my $next = $self->next;
-
-  $self->extract;
+  my $prev = $self->clear_prev;
+  my $next = $self->clear_next;
 
   $prev->replace_next($head) if $prev;
   $head->last->replace_next($next) if $next;
 
-  return;
+  return $self;
 }
 
 sub extract {
