@@ -1,12 +1,11 @@
 package Cell;
 use Moose;
 
-use MooseX::Types::Moose qw(Item);
+# use MooseX::Types::Moose qw(Item);
 use MooseX::Types -declare => [ qw(Cell) ];
+class_type Cell, { class => 'Cell' };
 
 use Scalar::Util qw(refaddr);
-
-class_type Cell, { class => 'Cell' };
 
 use namespace::autoclean;
 
@@ -27,17 +26,11 @@ has next => (
 
 has value => (
   is  => 'rw',
-  isa => Item,
   required => 1,
 );
 
 sub new_from_values {
   my ($self, $values) = @_;
-
-  # my %seen;
-  # for my $value (@$values) {
-  #   confess "duplicate value in values list" if $seen{ refaddr($value) }++;
-  # }
 
   my @cells = map {; $self->new({ value => $_ }) } @$values;
 
@@ -48,6 +41,8 @@ sub new_from_values {
 
 sub __linearize {
   my ($self, @cells) = @_;
+
+  $_->extract for @cells;
 
   for my $i (0 .. $#cells) {
     $cells[ $i ]->replace_next($cells[ $i + 1 ]) if $i < $#cells;
@@ -60,8 +55,7 @@ sub insert_before {
   return unless $head;
   confess "given head is not the head of a chain" unless $head->is_first;
 
-  my $prev = $self->prev;
-  $self->clear_prev;
+  my $prev = $self->clear_prev;
 
   $head->replace_prev($prev) if $prev;
 
@@ -100,8 +94,8 @@ sub replace_next {
   confess "no replacement cell given" unless $head;
   confess "given head is not the head of a chain" unless $head->is_first;
 
+  $self->clear_next;
   $head->__set_prev($self);
-  $self->next->__clear_prev if $self->next;
   $self->__set_next($head);
 
   return;
