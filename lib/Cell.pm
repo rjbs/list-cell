@@ -5,8 +5,6 @@ use Moose;
 use MooseX::Types -declare => [ qw(Cell) ];
 class_type Cell, { class => 'Cell' };
 
-use Scalar::Util qw(refaddr);
-
 use namespace::autoclean;
 
 has prev => (

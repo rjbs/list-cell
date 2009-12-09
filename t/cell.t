@@ -1,11 +1,13 @@
 use strict;
 use warnings;
 
-use Test::More 0.88;
+use Test::More 0.90;
 
 use Cell;
 
-# sub Cell::DESTROY { warn $_[0]->value . " is gone\n" }
+my $total = 0;
+sub Cell::BUILD   { $total++; }
+sub Cell::DESTROY { $total--; }
 
 {
   my $cell_1 = Cell->new({ value => 1 });
@@ -47,6 +49,8 @@ use Cell;
   is($cell_5->last->value,  3, 'c->last->value');
 }
 
+is($total, 0, "all cells destroyed");
+
 {
   my $cell_A = Cell->new_from_values([ qw(1 2 3) ]);
   my $cell_B = Cell->new_from_values([ qw(X Y Z) ]);
@@ -57,6 +61,8 @@ use Cell;
 
   values_are($cell_A, [ qw(1 X Y Z) ]);
 }
+
+is($total, 0, "all cells destroyed");
 
 done_testing;
 
