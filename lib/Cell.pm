@@ -171,7 +171,7 @@ sub prev_where {
 sub is_first { ! (shift)->prev }
 sub is_last  { ! (shift)->next }
 
-sub first { return $_[0]->prev ?  $_[0]->prev->first : $_[0]; }
-sub last  { return $_[0]->next ?  $_[0]->next->last  : $_[0]; }
+sub first { return $_[0]->prev ? $_[0]->prev->first : $_[0]; }
+sub last  { return $_[0]->next ? $_[0]->next->last  : $_[0]; }
 
 1;
