@@ -1,9 +1,9 @@
-package Cell;
+package List::Cell;
 use Moose;
 
 # use MooseX::Types::Moose qw(Item);
 use MooseX::Types -declare => [ qw(Cell) ];
-class_type Cell, { class => 'Cell' };
+class_type Cell, { class => 'List::Cell' };
 
 use namespace::autoclean;
 
