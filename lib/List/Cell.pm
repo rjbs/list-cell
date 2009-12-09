@@ -12,6 +12,7 @@ has prev => (
   isa => Cell,
   clearer  => '__clear_prev',
   writer   => '__set_prev',
+  init_arg => undef,
   weak_ref => 1,
 );
 
@@ -20,6 +21,7 @@ has next => (
   isa => Cell,
   clearer  => '__clear_next',
   writer   => '__set_next',
+  init_arg => undef,
 );
 
 sub new_from_arrayref {
