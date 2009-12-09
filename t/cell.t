@@ -10,6 +10,8 @@ my $total = 0;
   use Moose;
   with 'List::Cell';
 
+  has value => (is  => 'rw', required => 1);
+
   sub BUILD   { $total++; }
   sub DESTROY { $total--; }
 }
@@ -57,8 +59,8 @@ my $total = 0;
 is($total, 0, "all cells destroyed");
 
 {
-  my $cell_A = Test::Cell->new_from_values([ qw(1 2 3) ]);
-  my $cell_B = Test::Cell->new_from_values([ qw(X Y Z) ]);
+  my $cell_A = Test::Cell->new_from_arrayref([ map {;{value=>$_}} qw(1 2 3) ]);
+  my $cell_B = Test::Cell->new_from_arrayref([ map {;{value=>$_}} qw(X Y Z) ]);
 
   values_are($cell_A, [ qw(1 2 3) ]);
 

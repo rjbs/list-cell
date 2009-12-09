@@ -22,15 +22,10 @@ has next => (
   writer   => '__set_next',
 );
 
-has value => (
-  is  => 'rw',
-  required => 1,
-);
-
-sub new_from_values {
+sub new_from_arrayref {
   my ($self, $values) = @_;
 
-  my @cells = map {; $self->new({ value => $_ }) } @$values;
+  my @cells = map {; $self->new($_) } @$values;
 
   $self->__linearize(@cells);
 
