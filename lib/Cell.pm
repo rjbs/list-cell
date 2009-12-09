@@ -110,20 +110,20 @@ sub replace_next {
 sub clear_prev {
   my ($self) = @_;
 
-  return unless $self->prev;
-  $self->prev->clear_next;
+  return unless my $prev = $self->prev;
+  $prev->clear_next;
 
-  return;
+  return $prev;
 }
 
 sub clear_next {
   my ($self) = @_;
 
-  return unless $self->next;
-  $self->next->__clear_prev;
+  return unless my $next = $self->next;
+  $next->__clear_prev;
   $self->__clear_next;
 
-  return;
+  return $next;
 }
 
 sub replace_with {
@@ -146,15 +146,10 @@ sub replace_with {
 sub extract {
   my ($self) = @_;
 
-  my $prev = $self->prev;
-  my $next = $self->next;
+  my $prev = $self->clear_prev;
+  my $next = $self->clear_next;
 
-  $self->clear_prev;
-  $self->clear_next;
-
-  if ($prev and $next) {
-    $prev->replace_next($next);
-  }
+  $prev->replace_next($next) if $prev and $next;
 
   return $self;
 }
