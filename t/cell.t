@@ -11,6 +11,9 @@ my $total = 0;
   with 'List::Cell';
 
   has value => (is  => 'rw', required => 1);
+  sub from_values {
+    return (shift)->new_from_arrayref( [ map {;{value=>$_}} @{ shift() } ] );
+  }
 
   sub BUILD   { $total++; }
   sub DESTROY { $total--; }
@@ -59,8 +62,8 @@ my $total = 0;
 is($total, 0, "all cells destroyed");
 
 {
-  my $cell_A = Test::Cell->new_from_arrayref([ map {;{value=>$_}} qw(1 2 3) ]);
-  my $cell_B = Test::Cell->new_from_arrayref([ map {;{value=>$_}} qw(X Y Z) ]);
+  my $cell_A = Test::Cell->from_values([ qw(1 2 3) ]);
+  my $cell_B = Test::Cell->from_values([ qw(X Y Z) ]);
 
   values_are($cell_A, [ qw(1 2 3) ]);
 
@@ -71,6 +74,43 @@ is($total, 0, "all cells destroyed");
 
 is($total, 0, "all cells destroyed");
 
+{
+  my $cell_A = Test::Cell->from_values([ qw(1 2 3) ]);
+  my $cell_B = Test::Cell->from_values([ qw(4) ]);
+
+  values_are($cell_A, [ qw(1 2 3) ]);
+
+  $cell_B->replace_prev($cell_A);
+
+  values_are($cell_A, [ qw(1 2 3 4) ]);
+  values_are($cell_B->first, [ qw(1 2 3 4) ]);
+}
+
+is($total, 0, "all cells destroyed");
+
+subtest 'pad-front' => sub {
+  my $pass  = 1;
+  my @start = qw(3 4 5);
+  my $first = Test::Cell->from_values(\@start);
+
+  while ($first->value != 0) {
+    my $prev_val  = $first->value - 1;
+    my $prev_cell = Test::Cell->from_values([ $prev_val ]);
+
+    values_are($first, \@start);
+
+    $first->replace_prev( $prev_cell );
+    is($first->first, $prev_cell, "new head is the cell we just made");
+
+    unshift @start, $prev_val;
+    values_are($first->first, \@start);
+
+    $first = $first->first;
+  }
+
+  done_testing;
+};
+
 done_testing;
 
 ### LOOK OUT BELOW
@@ -79,7 +119,8 @@ sub values_are {
   my ($head, $values, $comment) = @_;
 
   my @values = values_for($head);
-  is_deeply(\@values, $values, ($comment || "vals: @$values"));
+  # is_deeply(\@values, $values, ($comment || "vals: @$values"));
+  is("@values", "@$values", ($comment || "vals: @$values"));
   bidi_traverse_ok($head);
 }
 
