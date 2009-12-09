@@ -3,16 +3,21 @@ use warnings;
 
 use Test::More 0.90;
 
-use List::Cell;
-
 my $total = 0;
-sub List::Cell::BUILD   { $total++; }
-sub List::Cell::DESTROY { $total--; }
 
 {
-  my $cell_1 = List::Cell->new({ value => 1 });
-  my $cell_2 = List::Cell->new({ value => 2 });
-  my $cell_3 = List::Cell->new({ value => 3 });
+  package Test::Cell;
+  use Moose;
+  with 'List::Cell';
+
+  sub BUILD   { $total++; }
+  sub DESTROY { $total--; }
+}
+
+{
+  my $cell_1 = Test::Cell->new({ value => 1 });
+  my $cell_2 = Test::Cell->new({ value => 2 });
+  my $cell_3 = Test::Cell->new({ value => 3 });
 
   $cell_1->insert_after($cell_2);
 
@@ -22,13 +27,13 @@ sub List::Cell::DESTROY { $total--; }
 
   values_are($cell_1, [ qw(1 2 3) ]);
 
-  my $cell_4 = List::Cell->new({ value => 4 });
+  my $cell_4 = Test::Cell->new({ value => 4 });
 
   $cell_1->next->insert_after($cell_4);
 
   values_are($cell_1, [ qw(1 2 4 3) ]);
 
-  my $cell_5 = List::Cell->new({ value => 5 });
+  my $cell_5 = Test::Cell->new({ value => 5 });
 
   # This line demonstrates the most common usage of this library that I have in
   # mind.  -- rjbs, 2009-12-08
@@ -52,8 +57,8 @@ sub List::Cell::DESTROY { $total--; }
 is($total, 0, "all cells destroyed");
 
 {
-  my $cell_A = List::Cell->new_from_values([ qw(1 2 3) ]);
-  my $cell_B = List::Cell->new_from_values([ qw(X Y Z) ]);
+  my $cell_A = Test::Cell->new_from_values([ qw(1 2 3) ]);
+  my $cell_B = Test::Cell->new_from_values([ qw(X Y Z) ]);
 
   values_are($cell_A, [ qw(1 2 3) ]);
 
